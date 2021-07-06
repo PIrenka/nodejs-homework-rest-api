@@ -1,5 +1,6 @@
 const fs = require('fs/promises')
 const path = require('path')
+const shortid = require('shortid')
 const contactsPath = path.join('./model/contacts.json')
 
 const getListContact = () => {
@@ -46,11 +47,11 @@ const addContact = async (name, email, phone) => {
   try {
     const listContact = await getListContact()
     const contact = JSON.parse(listContact)
-    const contactNew = { id: new Date(), name, email, phone }
+    const contactNew = { id: shortid.generate(), name, email, phone }
     const contactsList = JSON.stringify([contactNew, ...contact], null, '\t')
 
     await writeToJson(contactsList)
-    return contactNew
+    // return contactNew
   } catch (err) {
     console.log(err.message)
   }
@@ -64,10 +65,39 @@ const updateContact = async (contactId, name, email, phone) => {
 
     contact.forEach((cont, index) => {
       if (cont.id.toString() === contactId) {
-        contact[index] = { id: contactId, name, email, phone }
+        // contact[index] = { id: contactId, name, email, phone }
+        return { id: contactId, name, email, phone }
       }
+      console.log(contactsList)
+      return contact
     })
 
+    const contactsList = JSON.stringify(contact, null, '\t')
+    await writeToJson(contactsList)
+  } catch (err) {
+    console.log(err.message)
+  }
+}
+
+const changeContact = async (contactId, name, email, phone) => {
+  console.log(contactId, name, email, phone)
+  try {
+    const listContact = await getListContact()
+    const contact = JSON.parse(listContact)
+    contact.map((cont) => {
+      if (cont.id.toString() === contactId) {
+        if (name) {
+          cont.name = name
+        }
+        if (email) {
+          cont.email = email
+        }
+        if (phone) {
+          cont.phone = phone
+        }
+      }
+      return cont
+    })
     const contactsList = JSON.stringify(contact, null, '\t')
     await writeToJson(contactsList)
   } catch (err) {
@@ -80,5 +110,6 @@ module.exports = {
   getContactById,
   removeContact,
   addContact,
-  updateContact
+  updateContact,
+  changeContact
 }

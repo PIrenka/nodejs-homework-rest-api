@@ -9,11 +9,10 @@ const {
   putContact,
   patchContact
 } = require('../../controllers/contactsController')
-
 const {
   validationData,
   patchValidation
-} = require('../../middlewares/validation')
+} = require('../../middlewares/validation.js')
 
 router.get('/', getContacts)
 router.get('/:contactId', getContactId)

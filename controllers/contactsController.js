@@ -44,7 +44,6 @@ const postContacts = async (req, res, next) => {
   try {
     const { name, email, phone } = req.body
     const data = await addContact(name, email, phone)
-    // const data = await addContact({ name }, email, phone)
     res.status(201).json({
       status: 'success',
       code: 201,

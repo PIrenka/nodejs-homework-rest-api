@@ -51,7 +51,6 @@ const addContact = async (name, email, phone) => {
     const contactsList = JSON.stringify([contactNew, ...contact], null, '\t')
 
     await writeToJson(contactsList)
-    // return contactNew
   } catch (err) {
     console.log(err.message)
   }
@@ -60,12 +59,10 @@ const addContact = async (name, email, phone) => {
 const updateContact = async (contactId, name, email, phone) => {
   console.log(contactId, name, email, phone)
   try {
-    const listContact = await getListContact()
+    const listContact = await fs.readFile(contactsPath, 'utf8')
     const contact = JSON.parse(listContact)
-
     contact.forEach((cont, index) => {
       if (cont.id.toString() === contactId) {
-        // contact[index] = { id: contactId, name, email, phone }
         return { id: contactId, name, email, phone }
       }
       console.log(contactsList)

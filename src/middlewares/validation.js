@@ -23,10 +23,8 @@ const updateContactValidation = (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(30),
     phone: Joi.string().min(7).max(14),
-    email: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-      .optional()
-  })
+    email: Joi.string().email({ minDomainSegments: 2 })
+  }).min(1)
   checkValidation(schema, req, res, next)
 }
 

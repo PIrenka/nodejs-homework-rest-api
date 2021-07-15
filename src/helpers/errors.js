@@ -17,9 +17,16 @@ class WrongParametersError extends noteError {
     this.status = 400
   }
 }
+class NotAuthorized extends noteError {
+  constructor(message) {
+    super(message)
+    this.status = 401
+  }
+}
 
 module.exports = {
   noteError,
   ValidationError,
+  NotAuthorized,
   WrongParametersError
 }

@@ -4,8 +4,8 @@ const { asyncWrapper } = require('../../helpers/apiHelpers')
 
 const {
   getContactsController,
-  getContactByIdController,
-  addContactController,
+  getContactIdController,
+  postContactController,
   deleteContactController,
   updateContactController,
   updateStatusContactController
@@ -14,11 +14,13 @@ const {
   validationData,
   updateContactValidation,
   updateStatusContactValidation
-} = require('../../middlewares/validation.js')
+} = require('../../middlewares/validation')
+const { authMiddleware } = require('../../middlewares/authMiddleware')
 
+router.use(authMiddleware)
 router.get('/', asyncWrapper(getContactsController))
-router.get('/:id', asyncWrapper(getContactByIdController))
-router.post('/', validationData, asyncWrapper(addContactController))
+router.get('/:id', asyncWrapper(getContactIdController))
+router.post('/', validationData, asyncWrapper(postContactController))
 router.delete('/:id', asyncWrapper(deleteContactController))
 router.put(
   '/:id',

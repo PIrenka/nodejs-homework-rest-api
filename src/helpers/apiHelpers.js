@@ -5,6 +5,7 @@ const asyncWrapper = (controller) => {
     controller(req, res).catch(next)
   }
 }
+
 const errorHandler = (err, req, res, next) => {
   if (err instanceof noteError) {
     return res.status(err.status).json({ message: err.message })

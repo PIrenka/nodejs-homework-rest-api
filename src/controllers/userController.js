@@ -5,24 +5,18 @@ const {
   getCurrentUser,
   updateSubscription,
   updateAvatar
-} = require('../model/authService')
+} = require('../service/authService')
 
 const registrationController = async (req, res, next) => {
   const { email, password } = req.body
   await registration({ email, password })
   res.status(201).json({ status: 'created' })
-  // res.status(201).json({
-  //   user: {
-  //     email: email,
-  //     password: password
-  //   }
-  // })
 }
 
 const loginController = async (req, res, next) => {
   const { email, password } = req.body
-  const token = await login({ email, password })
-  return res.status(200).json({ token })
+  const user = await login({ email, password })
+  return res.status(200).json({ user })
 }
 
 const logoutController = async (req, res) => {
@@ -51,21 +45,18 @@ const updateSubscriptionController = async (req, res, next) => {
   res.status(200).json({ currentUser })
 }
 
-const avatarsController = async (req, res) => {
-  const { userId } = req.user
-  const pathAvatar = req.file.path
-  console.log('pathAvatar', pathAvatar)
-  const token = req.token
-  const URLAvatar = await updateAvatar({
+const avatarsController = async (req, res, next) => {
+  const { file } = req
+  const { _id: userId, avatarURL } = req.user
+  const newPathAvatar = await updateAvatar({
     userId,
-    pathAvatar,
-    token
+    file,
+    avatarURL
   })
-
   res.status(200).json({
     Status: 'OK',
     ContentType: 'application/json',
-    ResponseBody: { URLAvatar }
+    avatarURL: newPathAvatar
   })
 }
 

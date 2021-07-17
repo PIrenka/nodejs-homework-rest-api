@@ -5,7 +5,7 @@ const {
   addContact,
   updateContact,
   updateStatusContact
-} = require('../model/contactService')
+} = require('../service/contactService')
 
 const getContactsController = async (req, res, next) => {
   const { _id: userId } = req.user

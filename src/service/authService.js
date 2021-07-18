@@ -31,8 +31,8 @@ const registration = async ({ email, password }) => {
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: 'testgoit971@gmail.com',
-      pass: '123456_test@'
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
     },
     tls: {
       rejectUnauthorized: false
@@ -87,8 +87,8 @@ const userVerification = async (verificationToken) => {
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: 'testgoit971@gmail.com',
-      pass: '123456_test@'
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
     },
     tls: {
       rejectUnauthorized: false
@@ -119,8 +119,8 @@ const userVerificationResend = async ({ email }) => {
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: 'testgoit971@gmail.com',
-      pass: '123456_test@'
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
     },
     tls: {
       rejectUnauthorized: false
@@ -164,9 +164,7 @@ const updateSubscription = async ({ token, subscription }, userId) => {
 }
 const updateAvatar = async ({ userId, file }) => {
   const FILE_DIR = path.join(`./tmp/${file.filename}`)
-  // console.log('FILE_DIR', FILE_DIR)
   const AVATARS_DIR = path.join('./public/avatars')
-  // console.log('AVATARS_DIR', AVATARS_DIR)
   const [, extension] = file.originalname.split('.')
   const newImageName = `${Date.now()}.${extension}`
   if (file) {

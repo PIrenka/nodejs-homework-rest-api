@@ -7,7 +7,7 @@ class noteError extends Error {
 class ValidationError extends noteError {
   constructor(message) {
     super(message)
-    this.status = 400
+    this.status = 404
   }
 }
 

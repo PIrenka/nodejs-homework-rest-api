@@ -1,5 +1,8 @@
-// const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt') //
 const jwt = require('jsonwebtoken')
+const path = require('path')
+const fs = require('fs').promises
+const jimp = require('jimp')
 
 const { User } = require('../db/userModel')
 const {
@@ -17,21 +20,20 @@ const registration = async ({ email, password }) => {
     password
   })
   const newUser = await user.save()
-  // await user.save()
-  return { email: newUser.email, subscription: newUser.subscription }
+  return {
+    email: newUser.email,
+    subscription: newUser.subscription,
+    avatarURL: newUser.avatarURL
+  }
 }
+
 const login = async ({ email, password }) => {
   const user = await User.findOne({ email })
-
-  console.log('user:  ', user)
-
   if (!user) {
     throw new NotAuthorized('Email  is wrong')
   }
-  // if (!await bcrypt.compare(password, user.password)) {
-  // if (await bcrypt.compare(password, user.password)) {
-  if (!(password === user.password)) {
-    console.log('password:  ', password)
+  if (!(await bcrypt.compare(password, user.password))) {
+    // if (!(password === user.password)) { //
     throw new NotAuthorized('Password is wrong')
   }
   const token = jwt.sign(
@@ -60,15 +62,12 @@ const logout = async ({ userId, token }) => {
     throw new NotAuthorized('Not authorized')
   }
 }
+
 const getCurrentUser = async ({ userId, token }) => {
   const currentUser = await User.findOne({ _id: userId, token })
-
-  console.log('currentUser', currentUser)
-  if (!currentUser) {
-    throw new NotAuthorized('Not authorized')
-  }
   return currentUser
 }
+
 const updateSubscription = async ({ token, subscription }, userId) => {
   const updateUserSubscription = await User.findByIdAndUpdate(
     { _id: userId, token },
@@ -80,10 +79,39 @@ const updateSubscription = async ({ token, subscription }, userId) => {
   }
   return updateUserSubscription
 }
+const updateAvatar = async ({ userId, file }) => {
+  const FILE_DIR = path.join(`./tmp/${file.filename}`)
+  // console.log('FILE_DIR', FILE_DIR)
+  const AVATARS_DIR = path.join('./public/avatars')
+  // console.log('AVATARS_DIR', AVATARS_DIR)
+  const [, extension] = file.originalname.split('.')
+  const newImageName = `${Date.now()}.${extension}`
+  if (file) {
+    const avatars = await jimp.read(FILE_DIR)
+    await avatars
+      .autocrop()
+      .cover(
+        250,
+        250,
+        jimp.HORIZONTAL_ALIGN_CENTER || jimp.VERTICAL_ALIGN_MIDDLE
+      )
+      .writeAsync(FILE_DIR)
+    await fs.rename(FILE_DIR, path.join(AVATARS_DIR, newImageName))
+  }
+  const newFilePath = `/api/download/${newImageName}`
+  const newA = await User.findOneAndUpdate(
+    { _id: userId },
+    { $set: { avatarURL: newFilePath } },
+    { new: true }
+  )
+  return newA.avatarURL
+}
+
 module.exports = {
   registration,
   login,
   logout,
   getCurrentUser,
-  updateSubscription
+  updateSubscription,
+  updateAvatar
 }

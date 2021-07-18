@@ -3,25 +3,22 @@ const {
   registration,
   logout,
   getCurrentUser,
-  updateSubscription
-} = require('../model/authService')
+  updateSubscription,
+  updateAvatar
+} = require('../service/authService')
 
 const registrationController = async (req, res, next) => {
   const { email, password } = req.body
   await registration({ email, password })
   res.status(201).json({ status: 'created' })
-  // res.status(201).json({
-  //   user: {
-  //     email: email,
-  //     password: password
-  //   }
-  // })
 }
+
 const loginController = async (req, res, next) => {
   const { email, password } = req.body
-  const token = await login({ email, password })
-  return res.status(200).json({ token })
+  const user = await login({ email, password })
+  return res.status(200).json({ user })
 }
+
 const logoutController = async (req, res) => {
   const { userId } = req.user
   const token = req.token
@@ -32,12 +29,14 @@ const logoutController = async (req, res) => {
 
   res.status(204).json({ status: 'No Content' })
 }
+
 const getCurrentUserController = async (req, res, next) => {
   const token = req.token
   const { _id: userId } = req.user
   const currentUser = await getCurrentUser({ userId, token })
   return res.status(200).json({ currentUser })
 }
+
 const updateSubscriptionController = async (req, res, next) => {
   const token = req.token
   const { subscription } = req.body
@@ -45,10 +44,27 @@ const updateSubscriptionController = async (req, res, next) => {
   const currentUser = await updateSubscription({ token, subscription }, userId)
   res.status(200).json({ currentUser })
 }
+
+const avatarsController = async (req, res, next) => {
+  const { file } = req
+  const { _id: userId, avatarURL } = req.user
+  const newPathAvatar = await updateAvatar({
+    userId,
+    file,
+    avatarURL
+  })
+  res.status(200).json({
+    Status: 'OK',
+    ContentType: 'application/json',
+    avatarURL: newPathAvatar
+  })
+}
+
 module.exports = {
   registrationController,
   loginController,
   logoutController,
   getCurrentUserController,
-  updateSubscriptionController
+  updateSubscriptionController,
+  avatarsController
 }

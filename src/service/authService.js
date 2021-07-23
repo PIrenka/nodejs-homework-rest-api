@@ -3,10 +3,14 @@ const jwt = require('jsonwebtoken')
 const path = require('path')
 const fs = require('fs').promises
 const jimp = require('jimp')
+const nodemailer = require('nodemailer')
+const sha256 = require('sha256')
 
 const { User } = require('../db/userModel')
 const {
   NotAuthorized,
+  ValidationError,
+  WrongParametersError,
   RegistrationConflictError
 } = require('../helpers/errors')
 
@@ -19,16 +23,32 @@ const registration = async ({ email, password }) => {
     email,
     password
   })
-  const newUser = await user.save()
-  return {
-    email: newUser.email,
-    subscription: newUser.subscription,
-    avatarURL: newUser.avatarURL
-  }
+  const verificationToken = sha256(email + process.env.JWT_SECRET)
+  user.verifyToken = verificationToken
+  await user.save()
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  })
+  const info = await transporter.sendMail({
+    from: '"Irene" <test.fs.tasks@gmail.com>',
+    to: user.email,
+    subject: 'Sender',
+    text: `Please  click on link:<a href = "http://localhost:3030/api/auth/verify/${verificationToken}"> for registration</a>`,
+    html: `Please  click on link:<a href = "http://localhost:3030/api/auth/verify/${verificationToken}"> for registration</a>`
+  })
 }
 
 const login = async ({ email, password }) => {
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email, verify: true })
   if (!user) {
     throw new NotAuthorized('Email  is wrong')
   }
@@ -50,6 +70,69 @@ const login = async ({ email, password }) => {
     { new: true }
   )
   return updatedUser
+}
+
+const userVerification = async (verificationToken) => {
+  const userVerified = await User.findOne({
+    verifyToken: verificationToken,
+    verify: false
+  })
+  if (!userVerified) {
+    throw new ValidationError('Invalid confirmation code')
+  }
+  userVerified.verify = true
+  await userVerified.save()
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  })
+  const info = await transporter.sendMail({
+    from: '"Irene" <test.fs.tasks@gmail.com>',
+    to: userVerified.email,
+    subject: 'Comlete registartion',
+    text: 'Tnank you for registartion',
+    html: 'Tnank you for registartion'
+  })
+}
+
+const userVerificationResend = async ({ email }) => {
+  const userVerified = await User.findOne({ email })
+  if (!userVerified) {
+    throw new WrongParametersError('Missing required field email')
+  }
+  if (userVerified.verify === true) {
+    throw new WrongParametersError('Verification has already been passed')
+  }
+  const verificationToken = sha256(email + process.env.JWT_SECRET)
+  userVerified.verifyToken = verificationToken
+  await userVerified.save()
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'test.fs.tasks@gmail.com',
+      pass: '1234tttt!'
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  })
+  const info = await transporter.sendMail({
+    from: '"Irene" <test.fs.tasks@gmail.com>',
+    to: userVerified.email,
+    subject: 'Sender',
+    text: `Please  click on link:<a href = "http://localhost:3030/api/auth/verify/${verificationToken}"> for registration</a>`,
+    html: `Please  click on link:<a href = "http://localhost:3030/api/auth/verify/${verificationToken}"> for registration</a>`
+  })
 }
 
 const logout = async ({ userId, token }) => {
@@ -81,9 +164,7 @@ const updateSubscription = async ({ token, subscription }, userId) => {
 }
 const updateAvatar = async ({ userId, file }) => {
   const FILE_DIR = path.join(`./tmp/${file.filename}`)
-  // console.log('FILE_DIR', FILE_DIR)
   const AVATARS_DIR = path.join('./public/avatars')
-  // console.log('AVATARS_DIR', AVATARS_DIR)
   const [, extension] = file.originalname.split('.')
   const newImageName = `${Date.now()}.${extension}`
   if (file) {
@@ -113,5 +194,7 @@ module.exports = {
   logout,
   getCurrentUser,
   updateSubscription,
-  updateAvatar
+  updateAvatar,
+  userVerification,
+  userVerificationResend
 }
